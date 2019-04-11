@@ -5,7 +5,7 @@
 // Author:  Tad E. Smith
 //
 //
-// Copyright 2001-2013 Tad E. Smith
+// Copyright 2001-2017 Tad E. Smith
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@
 #pragma once
 #endif
 
+#include <memory>
+#include <thread>
+
 #include <log4cplus/tstring.h>
 #include <log4cplus/helpers/pointer.h>
 
@@ -39,18 +42,13 @@ namespace log4cplus { namespace thread {
 
 LOG4CPLUS_EXPORT log4cplus::tstring const & getCurrentThreadName();
 LOG4CPLUS_EXPORT log4cplus::tstring const & getCurrentThreadName2();
+LOG4CPLUS_EXPORT void setCurrentThreadName(const log4cplus::tstring & name);
+LOG4CPLUS_EXPORT void setCurrentThreadName2(const log4cplus::tstring & name);
 LOG4CPLUS_EXPORT void yield();
 LOG4CPLUS_EXPORT void blockAllSignals();
 
 
 #ifndef LOG4CPLUS_SINGLE_THREADED
-
-class ThreadImplBase
-    : public virtual log4cplus::helpers::SharedObject
-{
-protected:
-    virtual ~ThreadImplBase ();
-};
 
 
 /**
@@ -64,6 +62,10 @@ class LOG4CPLUS_EXPORT AbstractThread
 {
 public:
     AbstractThread();
+    // Disallow copying of instances of this class.
+    AbstractThread(const AbstractThread&) = delete;
+    AbstractThread& operator=(const AbstractThread&) = delete;
+
     bool isRunning() const;
     virtual void start();
     void join () const;
@@ -74,11 +76,14 @@ protected:
     virtual ~AbstractThread();
 
 private:
-    helpers::SharedObjectPtr<ThreadImplBase> thread;
+    enum Flags
+    {
+        fRUNNING = 1,
+        fJOINED = 2
+    };
 
-    // Disallow copying of instances of this class.
-    AbstractThread(const AbstractThread&);
-    AbstractThread& operator=(const AbstractThread&);
+    std::unique_ptr<std::thread> thread;
+    mutable std::atomic<int> flags;
 };
 
 typedef helpers::SharedObjectPtr<AbstractThread> AbstractThreadPtr;
@@ -91,4 +96,3 @@ typedef helpers::SharedObjectPtr<AbstractThread> AbstractThreadPtr;
 
 
 #endif // LOG4CPLUS_THREADS_HEADER_
-
