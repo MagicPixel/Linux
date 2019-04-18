@@ -1,4 +1,4 @@
-//  (C) Copyright Gennadiy Rozental 2011-2014.
+//  (C) Copyright Gennadiy Rozental 2001.
 //  Distributed under the Boost Software License, Version 1.0.
 //  (See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
@@ -43,6 +43,7 @@ namespace unit_test {
 
 namespace framework {
 class state;
+BOOST_TEST_DECL master_test_suite_t& master_test_suite();
 }
 
 // ************************************************************************** //
@@ -82,10 +83,10 @@ public:
     std::string                         full_name() const;
 
     // Public r/o properties
-    readonly_property<test_unit_type>   p_type;                 ///< type for this test unit
-    readonly_property<const_string>     p_type_name;            ///< "case"/"suite"/"module"
-    readonly_property<const_string>     p_file_name;
-    readonly_property<std::size_t>      p_line_num;
+    test_unit_type const                p_type;                 ///< type for this test unit
+    const_string const                  p_type_name;            ///< "case"/"suite"/"module"
+    const_string const                  p_file_name;
+    std::size_t const                   p_line_num;
     id_t                                p_id;                   ///< unique id for this test unit
     parent_id_t                         p_parent_id;            ///< parent test suite id
     label_list_t                        p_labels;               ///< list of labels associated with this test unit
@@ -176,9 +177,15 @@ public:
 
     /// @overload
     void            add( test_unit_generator const& gen, decorator::collector& decorators );
+  
+    /// @overload
+    void            add( boost::shared_ptr<test_unit_generator> gen_ptr, decorator::collector& decorators );
 
     //! Removes a test from the test suite.
     void            remove( test_unit_id id );
+  
+    //! Generates all the delayed test_units from the generators
+    void            generate( );
 
 
     // access methods
@@ -199,6 +206,8 @@ protected:
 
     test_unit_id_list   m_children;
     children_per_rank   m_ranked_children; ///< maps child sibling rank to list of children with that rank
+  
+    std::vector< std::pair<boost::shared_ptr<test_unit_generator>, std::vector<decorator::base_ptr> > > m_generators; /// lazy evaluation
 };
 
 // ************************************************************************** //
@@ -206,12 +215,17 @@ protected:
 // ************************************************************************** //
 
 class BOOST_TEST_DECL master_test_suite_t : public test_suite {
-public:
+private:
     master_test_suite_t();
-
+    master_test_suite_t(const master_test_suite_t&); // undefined
+    master_test_suite_t& operator=(master_test_suite_t const &); // undefined
+  
+public:
     // Data members
     int      argc;
     char**   argv;
+  
+    friend master_test_suite_t& boost::unit_test::framework::master_test_suite();
 };
 
 // ************************************************************************** //

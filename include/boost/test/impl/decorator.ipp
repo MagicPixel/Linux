@@ -1,4 +1,4 @@
-//  (C) Copyright Gennadiy Rozental 2011-2014.
+//  (C) Copyright Gennadiy Rozental 2001.
 //  Distributed under the Boost Software License, Version 1.0.
 //  (See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
@@ -60,6 +60,14 @@ void
 collector::reset()
 {
     m_tu_decorators.clear();
+}
+
+//____________________________________________________________________________//
+
+std::vector<base_ptr>
+collector::get_lazy_decorators() const
+{
+    return m_tu_decorators;
 }
 
 //____________________________________________________________________________//
@@ -132,10 +140,10 @@ depends_on::apply( test_unit& tu )
 #if !BOOST_TEST_SUPPORT_TOKEN_ITERATOR
     BOOST_TEST_SETUP_ASSERT( false, "depends_on decorator is not supported on this platform" );
 #else
-    string_token_iterator tit( m_dependency, (dropped_delimeters = "/", kept_delimeters = dt_none) );
+    utils::string_token_iterator tit( m_dependency, (utils::dropped_delimeters = "/", utils::kept_delimeters = utils::dt_none) );
 
     test_unit* dep = &framework::master_test_suite();
-    while( tit != string_token_iterator() ) {
+    while( tit != utils::string_token_iterator() ) {
         BOOST_TEST_SETUP_ASSERT( dep->p_type == TUT_SUITE, std::string( "incorrect dependency specification " ) + m_dependency );
 
         test_unit_id next_id = static_cast<test_suite*>(dep)->get( *tit );

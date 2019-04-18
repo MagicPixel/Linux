@@ -9,6 +9,8 @@
 #define FUSION_CONS_07172005_0843
 
 #include <boost/fusion/support/config.hpp>
+#include <boost/fusion/support/void.hpp>
+#include <boost/fusion/support/detail/enabler.hpp>
 #include <boost/fusion/container/list/cons_fwd.hpp>
 #include <boost/fusion/support/detail/access.hpp>
 #include <boost/fusion/sequence/intrinsic/begin.hpp>
@@ -34,7 +36,6 @@
 
 namespace boost { namespace fusion
 {
-    struct void_;
     struct cons_tag;
     struct forward_traversal_tag;
     struct fusion_sequence_tag;
@@ -69,6 +70,10 @@ namespace boost { namespace fusion
         cons(cons<Car2, Cdr2> const& rhs)
             : car(rhs.car), cdr(rhs.cdr) {}
 
+#if BOOST_WORKAROUND(BOOST_GCC, / 100 == 406) && !defined(BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS)
+        // Workaround for `array used as initializer` compile error on gcc 4.6 w/ c++0x.
+        template <typename = void>
+#endif
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         cons(cons const& rhs)
             : car(rhs.car), cdr(rhs.cdr) {}
@@ -82,7 +87,8 @@ namespace boost { namespace fusion
                     traits::is_sequence<Sequence>
                   , mpl::not_<is_base_of<cons, Sequence> >
                   , mpl::not_<is_convertible<Sequence, Car> > > // use copy to car instead
-            >::type* /*dummy*/ = 0
+              , detail::enabler_
+            >::type = detail::enabler
         )
             : car(*fusion::begin(seq))
             , cdr(fusion::next(fusion::begin(seq)), mpl::true_()) {}

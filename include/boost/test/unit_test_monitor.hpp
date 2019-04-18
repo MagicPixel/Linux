@@ -1,4 +1,4 @@
-//  (C) Copyright Gennadiy Rozental 2001-2014.
+//  (C) Copyright Gennadiy Rozental 2001.
 //  Distributed under the Boost Software License, Version 1.0.
 //  (See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
@@ -34,7 +34,9 @@ class BOOST_TEST_DECL unit_test_monitor_t : public singleton<unit_test_monitor_t
 public:
     enum error_level {
         test_ok                 =  0,
-        precondition_failure    = -1,
+        /// Indicates a failure to prepare the unit test (eg. fixture). Does not
+        /// account for tests skipped because of parent tests failed/skipped.
+        test_setup_failure    = -1,
         unexpected_exception    = -2,
         os_exception            = -3,
         os_timeout              = -4,
